@@ -34,8 +34,10 @@ def main():
     save_all(f0, media / "poster-1920")
     save_all(f0.resize((1280, 720), Image.LANCZOS), media / "poster-1280")
     save_all(f0.crop((CROP_X, 0, CROP_X + 608, 1080)), media / "poster-portrait")
-    # a mid-loop frame for the OG card and the blurred backdrop of the visit section
-    load(graded / "f0150.png").save(media / "frame-150.png")
+    # mid-loop frame: soft backdrop for the visit section, and the OG card source
+    f150 = load(graded / "f0150.png")
+    f150.resize((960, 540), Image.LANCZOS).save(media / "backdrop.jpg", quality=72, optimize=True, progressive=True)
+    f150.save(graded.parent / "og-src.png")
 
 
 if __name__ == "__main__":
