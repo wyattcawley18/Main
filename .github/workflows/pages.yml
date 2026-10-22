@@ -1,0 +1,148 @@
+name: Deploy Fort Mill site
+
+# Publishes site/ to GitHub Pages under /fort-mill-family-restaurant/, then
+# verifies the live URL: hero film playback and looping, parallax layers,
+# tap-to-call / directions links, SEO tags, phone layout, reduced motion, and a
+# Lighthouse mobile audit.
+#
+# This repository has one Pages site and its root already serves the Bedford
+# Falls site from the default branch. Every deploy from here republishes that
+# site unchanged at the root (same files, same URL stamping as its own
+# workflow) so the two sites live side by side.
+on:
+  push:
+    branches: [main]
+    paths: [site/**, tools/verify.cjs, .github/workflows/pages.yml]
+  workflow_run:
+    workflows: [Render hero film]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  SUBPATH: fort-mill-family-restaurant
+  ROOT_SITE_BRANCH: claude/nice-brahmagupta-96qop7
+
+jobs:
+  # Deploy only when Pages is switched on and the rendered film is in the
+  # tree; otherwise skip without failing.
+  preflight:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ready=true
+          if ! gh api "repos/${{ github.repository }}/pages" --silent 2>/dev/null; then
+            echo "::notice::GitHub Pages is not enabled (Settings -> Pages -> Source: GitHub Actions); skipping deploy."
+            ready=false
+          fi
+          if [ ! -f site/media/hero-1080.mp4 ]; then
+            echo "::notice::Hero film not rendered yet; skipping deploy."
+            ready=false
+          fi
+          echo "ready=$ready" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: preflight
+    if: ${{ needs.preflight.outputs.ready == 'true' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.base_url }}/${{ env.SUBPATH }}/
+    outputs:
+      url: ${{ steps.pages.outputs.base_url }}/${{ env.SUBPATH }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
+          path: fm
+      - name: Check out the site already served at the root
+        id: root
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.ROOT_SITE_BRANCH }}
+          path: root
+          sparse-checkout: site
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Assemble root site + this site, stamp absolute URLs
+        run: |
+          base="${{ steps.pages.outputs.base_url }}"
+          base="${base%/}"
+          mkdir -p public
+          if [ "${{ steps.root.outcome }}" = "success" ] && [ -d root/site ]; then
+            cp -a root/site/. public/
+            grep -rl "__SITE_URL__" public | xargs -r sed -i "s#__SITE_URL__#${base}#g"
+          else
+            echo "::warning::Root site branch not found; publishing only /${SUBPATH}/"
+          fi
+          rm -rf "public/${SUBPATH}"
+          cp -a fm/site "public/${SUBPATH}"
+          grep -rl "__SITE_URL__" "public/${SUBPATH}" | xargs -r sed -i "s#__SITE_URL__#${base}/${SUBPATH}#g"
+          ! grep -rn "__SITE_URL__" public
+          du -sh public "public/${SUBPATH}"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  verify:
+    needs: deploy
+    # Playwright 1.56 cannot install browsers on the ubuntu-26.04 image behind ubuntu-latest
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm i --no-save playwright@1.56.1 lighthouse@12
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Wait for the CDN to serve this build
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "${{ needs.deploy.outputs.url }}/media/hero-1080.mp4" -r 0-99)
+            [ "$code" = "206" ] && break; sleep 10
+          done
+          curl -sI "${{ needs.deploy.outputs.url }}/" | head -5
+          echo "root site: $(curl -s -o /dev/null -w '%{http_code}' "${{ needs.deploy.outputs.url }}/../")"
+      - name: Live checks
+        run: node tools/verify.cjs "${{ needs.deploy.outputs.url }}/" shots --engines=chromium,webkit
+      - name: Lighthouse (mobile)
+        if: always()
+        run: |
+          export CHROME_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())")
+          npx lighthouse "${{ needs.deploy.outputs.url }}/" --quiet --chrome-flags="--headless=new --no-sandbox" \
+            --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=lh.json
+          node -e '
+            const r=require("./lh.json"), a=r.audits;
+            for (const [k,c] of Object.entries(r.categories)) console.log(k.padEnd(16), Math.round(c.score*100));
+            for (const k of ["first-contentful-paint","largest-contentful-paint","total-blocking-time","cumulative-layout-shift","speed-index"]) console.log(k.padEnd(28), a[k].displayValue);
+            for (const [k,c] of Object.entries(r.categories)) for (const ref of c.auditRefs) { const x=a[ref.id]; if (ref.weight>0 && x.score!==null && x.score<0.9) console.log("  below 90:", k, ref.id, x.score, x.displayValue||""); }'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-verification
+          path: |
+            shots/
+            lh.json
