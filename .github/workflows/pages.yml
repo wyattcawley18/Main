@@ -77,7 +77,8 @@ jobs:
 
   verify:
     needs: deploy
-    runs-on: ubuntu-latest
+    # Playwright 1.56 cannot install browsers on the ubuntu-26.04 image behind ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
