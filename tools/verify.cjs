@@ -134,6 +134,9 @@ async function desktop(browser, name) {
   ok(seo.title.length > 20 && seo.desc.length > 80, `[${name}] title + meta description`, `${seo.title.length}/${seo.desc.length} chars`);
   ok(/^https?:\/\//.test(seo.canonical) || url.startsWith("http://localhost") || url.startsWith("http://127."), `[${name}] canonical is absolute`, seo.canonical);
   ok(!!seo.ld && seo.ld["@type"] === "Restaurant" && seo.ld.telephone === "+1-803-548-2336" && seo.ld.address.streetAddress === "1358 SC-160", `[${name}] JSON-LD restaurant data parses`);
+  const oh = (seo.ld && seo.ld.openingHoursSpecification) || [];
+  const openDays = oh.flatMap((o) => o.dayOfWeek);
+  ok(openDays.length === 6 && !openDays.includes("Monday") && oh.every((o) => o.closes === "15:00"), `[${name}] JSON-LD opening hours (Tue–Sun, closes 15:00)`, oh.map((o) => `${o.dayOfWeek.join("/")} ${o.opens}-${o.closes}`).join("; "));
   ok(seo.h1 === 1 && seo.lang === "en-US" && seo.tw === "summary_large_image", `[${name}] one h1, lang, twitter card`);
   if (/^https?:\/\//.test(seo.ogImage) && !seo.ogImage.includes("__SITE_URL__")) {
     const r = await page.request.get(seo.ogImage);
@@ -243,6 +246,33 @@ async function robustness(browser, name) {
   await ctx.close();
 }
 
+// The open/closed line is computed in US Eastern time from the hours table.
+// Freeze the clock at known moments (EDT, UTC-4) and check the wording.
+async function hours(browser, name) {
+  const cases = [
+    ["2026-10-22T06:30:00-04:00", "Thursday", false, "Closed now · opens today at 7 AM"],
+    ["2026-10-22T14:59:00-04:00", "Thursday", true, "Open now · until 3 PM"],
+    ["2026-10-24T06:30:00-04:00", "Saturday", true, "Open now · until 3 PM"],
+    ["2026-10-25T15:30:00-04:00", "Sunday", false, "Closed now · opens Tuesday at 7 AM"],
+    ["2026-10-26T10:00:00-04:00", "Monday", false, "Closed now · opens tomorrow at 7 AM"],
+  ];
+  for (const [iso, day, open, want] of cases) {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: "America/Los_Angeles" });
+    const page = await ctx.newPage();
+    await page.route(/\.mp4$/, (r) => r.abort());
+    await page.clock.setFixedTime(new Date(iso));
+    await page.goto(url, { waitUntil: "load" });
+    const r = await page.evaluate(() => {
+      const st = document.querySelector("[data-hours-status]");
+      const today = [...document.querySelectorAll("[data-week] tr.is-today th")].map((th) => th.firstChild.textContent);
+      return { text: st.textContent, open: st.dataset.open, hidden: st.hidden, today };
+    });
+    ok(!r.hidden && r.text === want && r.open === String(open) && r.today.length === 1 && r.today[0] === day,
+      `[${name}] hours status at ${iso.slice(0, 16)} ET`, `"${r.text}", today=${r.today.join(",")}`);
+    await ctx.close();
+  }
+}
+
 async function narrow(browser, name) {
   for (const width of [320, 360]) {
     const ctx = await browser.newContext({ viewport: { width, height: 640 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
@@ -276,6 +306,7 @@ async function dockClearance(browser, name, device) {
     await reduced(browser, `${e}-reduced`);
     await robustness(browser, `${e}-robust`);
     await dockClearance(browser, `${e}-phone`, e === "webkit" ? devices["iPhone 13"] : devices["Pixel 7"]);
+    await hours(browser, `${e}-hours`);
     await narrow(browser, `${e}-narrow`);
     await browser.close();
   }

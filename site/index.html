@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Fort Mill Family Restaurant · Home Cooking on SC-160, Fort Mill, SC</title>
-<meta name="description" content="Small-town diner on SC-160 in Fort Mill, SC: biscuits and gravy, chicken &amp; waffles, pork chops, Calabash shrimp and sweet tea. Dine-in, takeout, delivery.">
+<meta name="description" content="Small-town diner on SC-160 in Fort Mill, SC. Biscuits and gravy, chicken &amp; waffles, Calabash shrimp, sweet tea. Breakfast and lunch, Tuesday–Sunday.">
 <link rel="canonical" href="__SITE_URL__/">
 <meta name="theme-color" content="#1c110b">
 <meta name="color-scheme" content="light">
@@ -55,6 +55,10 @@
   },
   "geo": { "@type": "GeoCoordinates", "latitude": 35.01019, "longitude": -80.91456 },
   "hasMap": "https://www.google.com/maps/search/?api=1&query=Fort%20Mill%20Family%20Restaurant%2C%201358%20SC-160%2C%20Fort%20Mill%2C%20SC%2029715",
+  "openingHoursSpecification": [
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Tuesday", "Wednesday", "Thursday", "Friday"], "opens": "07:00", "closes": "15:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Saturday", "Sunday"], "opens": "06:00", "closes": "15:00" }
+  ],
   "hasMenu": {
     "@type": "Menu",
     "name": "Menu favorites",
@@ -280,9 +284,17 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
 .card h3{font:800 .78rem/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--yolk)}
 .hours{position:relative}
 .clock{position:absolute;top:clamp(1.3rem,3vw,2rem);right:clamp(1.3rem,3vw,2rem);width:clamp(84px,9vw,118px);aspect-ratio:1}
-.closes{margin-top:1.2rem;font-family:var(--display);line-height:.95}
-.closes span{display:block;font-size:1.6rem;color:rgba(246,234,214,.85)}
-.closes strong{display:block;font-weight:400;font-size:clamp(4rem,3rem + 4vw,6.5rem);color:var(--cream)}
+.hours-lede{margin-top:1.1rem;padding-right:calc(clamp(84px,9vw,118px) + 1rem);font:400 clamp(1.55rem,1.15rem + 1.2vw,2.1rem)/1.08 var(--display);color:var(--cream)!important}
+.status{display:inline-flex;align-items:center;gap:.55rem;align-self:flex-start;margin-top:1.1rem!important;padding:.45rem .9rem;border-radius:999px;background:rgba(246,234,214,.1);border:1px solid rgba(246,234,214,.16);font:700 .92rem/1.2 var(--sans);color:var(--cream)!important}
+.status::before{content:"";width:9px;height:9px;border-radius:50%;background:#e2735f;flex:none}
+.status[data-open="true"]::before{background:#8fd17e;box-shadow:0 0 0 4px rgba(143,209,126,.22)}
+.week{width:100%;margin-top:1.2rem;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.week th,.week td{padding:.62rem 0;border-bottom:1px dashed rgba(246,234,214,.2);font:600 1rem/1.2 var(--sans);text-align:left;color:rgba(246,234,214,.9)}
+.week td{text-align:right;white-space:nowrap}
+.week tr:last-child th,.week tr:last-child td{border-bottom:0}
+.week .closed th,.week .closed td{color:rgba(246,234,214,.55)}
+.week tr.is-today th,.week tr.is-today td{color:var(--yolk);font-weight:800}
+.week tr.is-today th::after{content:"Today";margin-left:.6rem;padding:.2rem .45rem;border-radius:5px;background:var(--yolk);color:var(--coffee);font:800 .62rem/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;vertical-align:.12em}
 .card p{margin-top:1rem;color:rgba(246,234,214,.82)}
 .card-actions{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:auto;padding-top:1.6rem}
 .where address{margin-top:1.1rem;font:400 clamp(1.6rem,1.2rem + 1.4vw,2.3rem)/1.12 var(--display);font-style:normal}
@@ -317,6 +329,7 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
 .foot a:hover{text-decoration-color:var(--yolk)}
 .foot-col a{display:inline-flex;align-items:center;min-height:44px;font-weight:700}
 .foot-col p{color:rgba(246,234,214,.8)}
+.foot-col address+p{margin-top:.5rem}
 .foot-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-top:3.5rem;padding-top:1.4rem;border-top:1px solid rgba(246,234,214,.12);font-size:.88rem;color:rgba(246,234,214,.6)}
 .foot-bottom a{display:inline-flex;align-items:center;min-height:44px}
 
@@ -464,7 +477,7 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
     <ul class="hero-facts">
       <li><svg class="icon" aria-hidden="true"><use href="#i-star"/></svg>4.4 · 888 Google reviews</li>
       <li>Dine-in · Takeout · Delivery</li>
-      <li>Closes 3 PM</li>
+      <li>Tue–Sun till 3 PM</li>
     </ul>
   </div>
 
@@ -503,7 +516,7 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
         <div><dt>Rating</dt><dd><span class="star">★</span> 4.4 from 888 Google reviews</dd></div>
         <div><dt>Price</dt><dd>$10–20 per person</dd></div>
         <div><dt>Service</dt><dd>Dine-in, takeout &amp; delivery</dd></div>
-        <div><dt>Closes</dt><dd>3 PM</dd></div>
+        <div><dt>Hours</dt><dd>Tue–Fri 7 AM–3 PM<br>Sat–Sun 6 AM–3 PM · Mon closed</dd></div>
       </dl>
     </div>
     <figure class="about-art">
@@ -613,11 +626,22 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
           <path d="M60 60V30" stroke="#2a1a12" stroke-width="5" stroke-linecap="round"/><path d="M60 60h27" stroke="#2a1a12" stroke-width="5" stroke-linecap="round"/>
           <circle cx="60" cy="60" r="5" fill="#b23a2e"/>
         </svg>
-        <p class="closes"><span>Closes at</span><strong>3 PM</strong></p>
-        <p>Breakfast and lunch. That’s the closing time on the restaurant’s Google listing; call ahead to confirm today’s hours.</p>
+        <p class="hours-lede">Breakfast &amp; lunch, Tuesday through Sunday</p>
+        <p class="status" data-hours-status hidden></p>
+        <table class="week" data-week>
+          <caption class="sr-only">Opening hours</caption>
+          <tbody>
+            <tr data-day="1" class="closed"><th scope="row">Monday</th><td>Closed</td></tr>
+            <tr data-day="2" data-open="7" data-close="15"><th scope="row">Tuesday</th><td>7 AM – 3 PM</td></tr>
+            <tr data-day="3" data-open="7" data-close="15"><th scope="row">Wednesday</th><td>7 AM – 3 PM</td></tr>
+            <tr data-day="4" data-open="7" data-close="15"><th scope="row">Thursday</th><td>7 AM – 3 PM</td></tr>
+            <tr data-day="5" data-open="7" data-close="15"><th scope="row">Friday</th><td>7 AM – 3 PM</td></tr>
+            <tr data-day="6" data-open="6" data-close="15"><th scope="row">Saturday</th><td>6 AM – 3 PM</td></tr>
+            <tr data-day="0" data-open="6" data-close="15"><th scope="row">Sunday</th><td>6 AM – 3 PM</td></tr>
+          </tbody>
+        </table>
         <div class="card-actions">
           <a class="btn btn-red" href="tel:+18035482336"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>Call (803) 548-2336</a>
-          <a class="btn btn-line" href="https://www.google.com/maps/search/?api=1&amp;query=Fort%20Mill%20Family%20Restaurant%2C%201358%20SC-160%2C%20Fort%20Mill%2C%20SC%2029715" target="_blank" rel="noopener">Today’s hours on Google<svg class="icon" aria-hidden="true"><use href="#i-ext"/></svg></a>
         </div>
       </article>
       <article class="card where" aria-labelledby="where-title">
@@ -652,10 +676,11 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
     <div class="foot-col">
       <h3>Visit</h3>
       <address><a href="https://www.google.com/maps/dir/?api=1&amp;destination=Fort%20Mill%20Family%20Restaurant%2C%201358%20SC-160%2C%20Fort%20Mill%2C%20SC%2029715" target="_blank" rel="noopener">1358 SC-160, Fort Mill, SC 29715</a></address>
+      <p>Dine-in · Takeout · Delivery<br>$10–20 per person</p>
     </div>
     <div class="foot-col">
-      <h3>Service</h3>
-      <p>Dine-in · Takeout · Delivery<br>$10–20 per person<br>Closes 3 PM</p>
+      <h3>Hours</h3>
+      <p>Tue–Fri 7 AM–3 PM<br>Sat–Sun 6 AM–3 PM<br>Closed Monday</p>
     </div>
   </div>
   <div class="wrap foot-bottom">

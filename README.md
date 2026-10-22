@@ -22,10 +22,12 @@ Fort Mill, SC 29715. Static, no build step: everything deployable lives in `site
 
 ## Content rules
 
-Facts come from the business's Google listing: address, phone, plus code, closing time, price
-band, rating and review count, menu highlights and the "Popular" tags, service options.
-Reviews are quoted verbatim. No prices, awards, history or opening hours beyond what is listed
-are stated. Map coordinates in the JSON-LD are the decoded plus code.
+Facts come from the business's Google listing: address, phone, plus code, price band, rating
+and review count, menu highlights and the "Popular" tags, service options. Weekly hours
+(Tue–Fri 7 AM–3 PM, Sat–Sun 6 AM–3 PM, closed Monday) were supplied with the brief; they live
+once in the hours table's data attributes, which drive the "open now" line (computed in US
+Eastern time) and are mirrored in the JSON-LD. Reviews are quoted verbatim. No prices, awards
+or history are stated. Map coordinates in the JSON-LD are the decoded plus code.
 
 ## Layout
 

@@ -198,6 +198,15 @@
     syncVideo();
     if (!video.paused && video.readyState > 2) markPlaying();
 
+    /* ---------- hours: today's row and an open/closed line ----------
+       The schedule lives in the table's data attributes; times are evaluated
+       in Fort Mill (US Eastern) whatever the visitor's own time zone. */
+    try {
+      hours();
+    } catch (err) {
+      console.error(err);
+    }
+
     /* ---------- map: load Google's embed only when asked ---------- */
     const mapBtn = document.querySelector(".map-load");
     if (mapBtn) {
@@ -212,5 +221,54 @@
         f.focus();
       });
     }
+  }
+
+  function hours() {
+    const week = document.querySelector("[data-week]");
+    const status = document.querySelector("[data-hours-status]");
+    if (!week || !status) return;
+    const rows = [...week.querySelectorAll("tr[data-day]")];
+    const days = {};
+    for (const r of rows) days[r.dataset.day] = r.dataset.open ? [Number(r.dataset.open), Number(r.dataset.close)] : null;
+    const SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const fmt = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "numeric", hourCycle: "h23" });
+    const label = (h) => `${h % 12 || 12} ${h < 12 ? "AM" : "PM"}`;
+
+    function update() {
+      const p = {};
+      for (const part of fmt.formatToParts(new Date())) p[part.type] = part.value;
+      const d = SHORT.indexOf(p.weekday);
+      const t = (Number(p.hour) % 24) + Number(p.minute) / 60;
+      for (const r of rows) {
+        const today = Number(r.dataset.day) === d;
+        r.classList.toggle("is-today", today);
+        if (today) r.setAttribute("aria-current", "date");
+        else r.removeAttribute("aria-current");
+      }
+      const h = days[d];
+      let open = false;
+      let text = "";
+      if (h && t >= h[0] && t < h[1]) {
+        open = true;
+        text = `Open now · until ${label(h[1])}`;
+      } else if (h && t < h[0]) {
+        text = `Closed now · opens today at ${label(h[0])}`;
+      } else {
+        for (let i = 1; i <= 7; i++) {
+          const n = (d + i) % 7;
+          if (days[n]) {
+            text = `Closed now · opens ${i === 1 ? "tomorrow" : NAMES[n]} at ${label(days[n][0])}`;
+            break;
+          }
+        }
+      }
+      status.textContent = text;
+      status.dataset.open = String(open);
+      status.hidden = !text;
+    }
+
+    update();
+    setInterval(update, 60000);
   }
 })();
