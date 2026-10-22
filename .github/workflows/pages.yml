@@ -23,8 +23,35 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  # Deploy only when Pages is switched on (Settings -> Pages -> GitHub Actions)
+  # and the rendered film is in the tree; otherwise skip without failing.
+  preflight:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ready=true
+          if ! gh api "repos/${{ github.repository }}/pages" --silent 2>/dev/null; then
+            echo "::notice::GitHub Pages is not enabled yet (Settings -> Pages -> Source: GitHub Actions); skipping deploy."
+            ready=false
+          fi
+          if [ ! -f site/media/hero-1080.mp4 ]; then
+            echo "::notice::Hero film not rendered yet; skipping deploy."
+            ready=false
+          fi
+          echo "ready=$ready" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: preflight
+    if: ${{ needs.preflight.outputs.ready == 'true' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
