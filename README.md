@@ -26,8 +26,11 @@ Facts come from the business's Google listing: address, phone, plus code, price 
 and review count, menu highlights and the "Popular" tags, service options. Weekly hours
 (Tue–Fri 7 AM–3 PM, Sat–Sun 6 AM–3 PM, closed Monday) were supplied with the brief; they live
 once in the hours table's data attributes, which drive the "open now" line (computed in US
-Eastern time) and are mirrored in the JSON-LD. Reviews are quoted verbatim. No prices, awards
-or history are stated. Map coordinates in the JSON-LD are the decoded plus code.
+Eastern time) and are mirrored in the JSON-LD. The menu board (categories and their serving
+notes), the three seafood prices and the consumer advisory come from the restaurant's online
+ordering menu, also supplied with the brief; the ordering platform's generic dish blurbs are
+not used. Reviews are quoted verbatim. No awards or history are stated. Map coordinates in the
+JSON-LD are the decoded plus code.
 
 ## Layout
 

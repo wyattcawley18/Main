@@ -134,6 +134,15 @@ async function desktop(browser, name) {
   ok(seo.title.length > 20 && seo.desc.length > 80, `[${name}] title + meta description`, `${seo.title.length}/${seo.desc.length} chars`);
   ok(/^https?:\/\//.test(seo.canonical) || url.startsWith("http://localhost") || url.startsWith("http://127."), `[${name}] canonical is absolute`, seo.canonical);
   ok(!!seo.ld && seo.ld["@type"] === "Restaurant" && seo.ld.telephone === "+1-803-548-2336" && seo.ld.address.streetAddress === "1358 SC-160", `[${name}] JSON-LD restaurant data parses`);
+  const menu = await page.evaluate(() => ({
+    prices: [...document.querySelectorAll(".prices div")].map((d) => `${d.querySelector("dt").textContent}=${d.querySelector("dd").textContent}`),
+    board: document.querySelectorAll(".board dt").length,
+    advisory: /undercooked meat can be hazardous/.test(document.querySelector(".board-note").textContent),
+  }));
+  ok(menu.prices.join("|") === "Calabash Shrimp=$14.49|Fried Shrimp & Flounder Combo=$16.49|Fried Filet of Flounder=$14.49" && menu.board >= 15 && menu.advisory,
+    `[${name}] menu: listed prices, full board, consumer advisory`, `${menu.prices.length} prices, ${menu.board} board lines`);
+  const seafood = ((seo.ld && seo.ld.hasMenu && seo.ld.hasMenu.hasMenuSection) || []).find((x) => x.name === "Seafood");
+  ok(!!seafood && seafood.hasMenuItem.every((i) => i.offers && i.offers.priceCurrency === "USD"), `[${name}] JSON-LD menu carries the listed prices`);
   const oh = (seo.ld && seo.ld.openingHoursSpecification) || [];
   const openDays = oh.flatMap((o) => o.dayOfWeek);
   ok(openDays.length === 6 && !openDays.includes("Monday") && oh.every((o) => o.closes === "15:00"), `[${name}] JSON-LD opening hours (Tue–Sun, closes 15:00)`, oh.map((o) => `${o.dayOfWeek.join("/")} ${o.opens}-${o.closes}`).join("; "));
