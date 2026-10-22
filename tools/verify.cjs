@@ -22,6 +22,17 @@ const ty = (t) => {
   return t.startsWith("matrix3d") ? v[13] : v[5];
 };
 
+// wait in animation frames (not wall-clock) until an element's transform stops changing
+async function settle(page, sel) {
+  let last = null, stable = 0;
+  for (let i = 0; i < 90; i++) {
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const v = await page.evaluate((s) => getComputedStyle(document.querySelector(s)).transform, sel);
+    if (v === last) { if (++stable >= 3) return v; } else { stable = 0; last = v; }
+  }
+  return last;
+}
+
 async function videoState(page) {
   return page.evaluate(() => {
     const v = document.getElementById("hero-video");
@@ -76,13 +87,13 @@ async function desktop(browser, name) {
   const fg = await page.evaluate(() => getComputedStyle(document.querySelector(".hero-badge")).transform);
   ok(ty(fg) < 0, `[${name}] foreground badge moves faster than scroll`, `ty=${ty(fg).toFixed(1)}`);
   for (const [sel, label] of [[".art-photo .parallax-inner", "about photo"], [".quotes .quote:nth-child(3)", "review card"], [".visit-bg", "visit backdrop"]]) {
+    const speed = await page.evaluate((s) => parseFloat(document.querySelector(s).dataset.speed), sel);
     await page.evaluate((s) => document.querySelector(s).scrollIntoView({ block: "start", behavior: "instant" }), sel);
-    await sleep(350);
-    const t1 = await page.evaluate((s) => getComputedStyle(document.querySelector(s)).transform, sel);
+    const t1 = await settle(page, sel);
     await page.evaluate(() => window.scrollBy({ top: 240, behavior: "instant" }));
-    await sleep(350);
-    const t2 = await page.evaluate((s) => getComputedStyle(document.querySelector(s)).transform, sel);
-    ok(Math.abs(ty(t2) - ty(t1)) > 2, `[${name}] ${label} layer has its own depth`, `Δ=${(ty(t2) - ty(t1)).toFixed(1)}px for 240px`);
+    const t2 = await settle(page, sel);
+    const d = ty(t2) - ty(t1), want = 240 * (1 - speed);
+    ok(Math.abs(d - want) < 3, `[${name}] ${label} layer moves at ${speed}× scroll`, `Δ=${d.toFixed(1)}px, expected ${want.toFixed(1)}px for 240px`);
   }
   const offscreenPaused = await page.evaluate(() => document.getElementById("hero-video").paused);
   ok(offscreenPaused, `[${name}] film pauses when scrolled out of view`);
