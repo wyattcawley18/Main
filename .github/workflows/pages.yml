@@ -5,11 +5,12 @@ name: Deploy Fort Mill site
 # links, SEO tags, hours, phone layout, reduced motion, and a Lighthouse
 # mobile audit.
 #
-# In its own repository the site is the Pages root. In wyattcawley18/Main the
-# Pages root already serves the Bedford Falls site from the default branch, so
-# there the site goes under /fort-mill-family-restaurant/ and every deploy
-# republishes Bedford Falls unchanged at the root (same files, same URL
-# stamping as its own workflow) so the two live side by side.
+# The site's home is its own repository, wyattcawley18/fort-mill-family-restaurant,
+# where it is the Pages root. In wyattcawley18/Main the Pages root serves the
+# Bedford Falls site from the default branch; there every deploy republishes
+# Bedford Falls unchanged at the root (same files, same URL stamping as its own
+# workflow) and puts a redirect to the home at /fort-mill-family-restaurant/,
+# or a full copy if the home isn't answering.
 on:
   push:
     branches: [main]
@@ -32,6 +33,7 @@ concurrency:
 env:
   SUBPATH: ${{ github.repository == 'wyattcawley18/Main' && 'fort-mill-family-restaurant' || '' }}
   ROOT_SITE_BRANCH: claude/nice-brahmagupta-96qop7
+  HOME_URL: https://wyattcawley18.github.io/fort-mill-family-restaurant
 
 jobs:
   # Deploy only when Pages is switched on and the rendered film is in the
@@ -66,9 +68,10 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.pages.outputs.base_url }}${{ env.SUBPATH && format('/{0}', env.SUBPATH) || '' }}/
+      url: ${{ steps.assemble.outputs.live_url }}/
     outputs:
-      url: ${{ steps.pages.outputs.base_url }}${{ env.SUBPATH && format('/{0}', env.SUBPATH) || '' }}
+      # the URL the live checks run against: this deploy, or the home it redirects to
+      url: ${{ steps.assemble.outputs.live_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -86,6 +89,7 @@ jobs:
       - id: pages
         uses: actions/configure-pages@v5
       - name: Assemble the site (plus the root site in Main), stamp absolute URLs
+        id: assemble
         run: |
           base="${{ steps.pages.outputs.base_url }}"
           base="${base%/}"
@@ -95,6 +99,7 @@ jobs:
             grep -rl "__SITE_URL__" public | xargs -r sed -i "s#__SITE_URL__#${base}#g"
             ! grep -rn "__SITE_URL__" public
             du -sh public
+            echo "live_url=${base}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           if [ "${{ steps.root.outcome }}" = "success" ] && [ -d root/site ]; then
@@ -104,8 +109,30 @@ jobs:
             echo "::warning::Root site branch not found; publishing only /${SUBPATH}/"
           fi
           rm -rf "public/${SUBPATH}"
-          cp -a fm/site "public/${SUBPATH}"
-          grep -rl "__SITE_URL__" "public/${SUBPATH}" | xargs -r sed -i "s#__SITE_URL__#${base}/${SUBPATH}#g"
+          mkdir -p "public/${SUBPATH}"
+          if curl -sf -o /dev/null "${HOME_URL}/"; then
+            # the home is up: send this address there, keeping any #section
+            cat > "public/${SUBPATH}/index.html" <<HTML
+          <!doctype html>
+          <html lang="en-US">
+          <head>
+          <meta charset="utf-8">
+          <title>Fort Mill Family Restaurant has moved</title>
+          <meta name="robots" content="noindex">
+          <link rel="canonical" href="${HOME_URL}/">
+          <meta http-equiv="refresh" content="0; url=${HOME_URL}/">
+          <script>location.replace("${HOME_URL}/" + location.hash)</script>
+          </head>
+          <body><p>Fort Mill Family Restaurant's website is now at <a href="${HOME_URL}/">${HOME_URL}/</a>.</p></body>
+          </html>
+          HTML
+            echo "live_url=${HOME_URL}" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::${HOME_URL}/ is not answering; publishing a full copy under /${SUBPATH}/"
+            cp -a fm/site/. "public/${SUBPATH}/"
+            grep -rl "__SITE_URL__" "public/${SUBPATH}" | xargs -r sed -i "s#__SITE_URL__#${base}/${SUBPATH}#g"
+            echo "live_url=${base}/${SUBPATH}" >> "$GITHUB_OUTPUT"
+          fi
           ! grep -rn "__SITE_URL__" public
           du -sh public "public/${SUBPATH}"
       - uses: actions/upload-pages-artifact@v3
@@ -142,7 +169,6 @@ jobs:
             [ "$code" = "206" ] && break; sleep 10
           done
           curl -sI "${{ needs.deploy.outputs.url }}/" | head -5
-          [ -n "$SUBPATH" ] && echo "root site: $(curl -s -o /dev/null -w '%{http_code}' "${{ needs.deploy.outputs.url }}/../")" || true
       - name: Live checks
         run: node tools/verify.cjs "${{ needs.deploy.outputs.url }}/" shots --engines=chromium,webkit
       - name: Lighthouse (mobile)
