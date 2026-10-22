@@ -80,13 +80,12 @@ async function desktop(browser, name) {
   // parallax
   const before = await page.evaluate(() => getComputedStyle(document.querySelector(".hero-media")).transform);
   await page.evaluate(() => window.scrollTo({ top: 400, behavior: "instant" }));
-  await sleep(300);
-  const after = await page.evaluate(() => getComputedStyle(document.querySelector(".hero-media")).transform);
+  const after = await settle(page, ".hero-media");
   const moved = ty(after) - ty(before);
   ok(Math.abs(moved - 400 * (1 - 0.42)) < 12, `[${name}] hero video layer at 0.42× scroll`, `Δ=${moved.toFixed(1)}px for 400px`);
-  const fg = await page.evaluate(() => getComputedStyle(document.querySelector(".hero-stamp")).transform);
+  const fg = await settle(page, ".hero-stamp");
   ok(Math.abs(ty(fg) - 400 * (1 - 1.25)) < 12, `[${name}] foreground stamp at 1.25× scroll (in front of the page)`, `ty=${ty(fg).toFixed(1)}`);
-  const copy = await page.evaluate(() => getComputedStyle(document.querySelector(".hero-content")).transform);
+  const copy = await settle(page, ".hero-content");
   ok(Math.abs(ty(copy) - 400 * (1 - 0.72)) < 12, `[${name}] hero copy at 0.72× scroll (middle depth)`, `ty=${ty(copy).toFixed(1)}`);
   for (const [sel, label] of [[".art-photo .parallax-inner", "about photo"], [".art-note", "about note"], [".check-wrap", "guest check"], [".quotes .quote:nth-child(3)", "review card"], [".visit-bg", "visit backdrop"]]) {
     const speed = await page.evaluate((s) => parseFloat(document.querySelector(s).dataset.speed), sel);
@@ -180,8 +179,7 @@ async function mobile(browser, name, device) {
   ok(dock.display !== "none" && dock.links.join("|") === "Call|Order|Directions", `[${name}] call/order/directions dock visible`, dock.links.join(" · "));
   const before = await page.evaluate(() => getComputedStyle(document.querySelector(".hero-media")).transform);
   await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
-  await sleep(300);
-  const after = await page.evaluate(() => getComputedStyle(document.querySelector(".hero-media")).transform);
+  const after = await settle(page, ".hero-media");
   ok(Math.abs(ty(after) - ty(before) - 300 * 0.58) < 12, `[${name}] parallax runs on mobile`, `Δ=${(ty(after) - ty(before)).toFixed(1)}px`);
   const small = await page.evaluate(() => [...document.querySelectorAll(".btn, .dock a, .video-toggle")].filter((b) => b.offsetParent && b.getBoundingClientRect().height < 44).map((b) => b.className));
   ok(small.length === 0, `[${name}] tap targets ≥ 44px`, small.join(","));
