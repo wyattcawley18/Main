@@ -1,0 +1,86 @@
+name: Deploy site
+
+# Publishes site/ to GitHub Pages, then verifies the live URL: hero film
+# playback and looping, parallax layers, tap-to-call / directions links,
+# SEO tags, phone layout, reduced motion, and a Lighthouse mobile audit.
+on:
+  push:
+    branches: [claude/nice-brahmagupta-96qop7]
+    paths: [site/**, tools/verify.cjs, .github/workflows/pages.yml]
+  workflow_run:
+    workflows: [Render hero film]
+    types: [completed]
+    branches: [claude/nice-brahmagupta-96qop7]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      url: ${{ steps.pages.outputs.base_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Stamp absolute URLs (canonical, OG, sitemap)
+        run: |
+          base="${{ steps.pages.outputs.base_url }}"
+          grep -rl "__SITE_URL__" site | xargs -r sed -i "s#__SITE_URL__#${base%/}#g"
+          ! grep -rn "__SITE_URL__" site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  verify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm i --no-save playwright@1.56.1 lighthouse@12
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Wait for the CDN to serve this build
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "${{ needs.deploy.outputs.url }}/media/hero-1080.mp4" -r 0-99)
+            [ "$code" = "206" ] && break; sleep 10
+          done
+          curl -sI "${{ needs.deploy.outputs.url }}/" | head -5
+      - name: Live checks
+        run: node tools/verify.cjs "${{ needs.deploy.outputs.url }}/" shots --engines=chromium,webkit
+      - name: Lighthouse (mobile)
+        if: always()
+        run: |
+          export CHROME_PATH=$(node -e "console.log(require('playwright').chromium.executablePath())")
+          npx lighthouse "${{ needs.deploy.outputs.url }}/" --quiet --chrome-flags="--headless=new --no-sandbox" \
+            --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=lh.json
+          node -e '
+            const r=require("./lh.json"), a=r.audits;
+            for (const [k,c] of Object.entries(r.categories)) console.log(k.padEnd(16), Math.round(c.score*100));
+            for (const k of ["first-contentful-paint","largest-contentful-paint","total-blocking-time","cumulative-layout-shift","speed-index"]) console.log(k.padEnd(28), a[k].displayValue);'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-verification
+          path: |
+            shots/
+            lh.json
