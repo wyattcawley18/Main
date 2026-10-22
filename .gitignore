@@ -1,0 +1,6 @@
+frames/
+graded/
+__pycache__/
+node_modules/
+.lighthouse/
+*.log

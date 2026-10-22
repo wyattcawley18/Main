@@ -1,0 +1,104 @@
+name: Render hero film
+
+# Path-traces the hero loop in Blender Cycles across 20 runners, grades and
+# encodes it, then commits the web deliverables to site/media/.
+on:
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: Cycles samples per pixel
+        default: "80"
+      reuse_run_id:
+        description: Skip rendering and re-grade frames from this earlier run id
+        default: ""
+  push:
+    branches: [claude/nice-brahmagupta-96qop7]
+    paths: [render/scene.py, .github/workflows/render-hero.yml]
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: render-hero
+  cancel-in-progress: true
+
+env:
+  FRAMES: 240
+  SHARDS: 20
+
+jobs:
+  render:
+    if: ${{ !inputs.reuse_run_id }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: System libraries for bpy
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            libgl1 libglx0 libsm6 libice6 libxi6 libxrender1 libxfixes3 \
+            libxext6 libx11-6 libxkbcommon0 libvulkan1 libxxf86vm1
+      - run: pip install -q bpy==5.2.2
+      - name: Render frames ${{ matrix.shard }}::${{ env.SHARDS }}
+        run: |
+          python render/scene.py --out frames --w 1920 --h 1080 \
+            --samples "${{ inputs.samples || '80' }}" \
+            --frames "${{ matrix.shard }}:${FRAMES}:${SHARDS}" --total "$FRAMES" 2>&1 \
+            | grep -E --line-buffered 'FRAME|Error|rror:|Traceback'
+          test "$(ls frames/*.png | wc -l)" -eq $(( (FRAMES - ${{ matrix.shard }} + SHARDS - 1) / SHARDS ))
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frames-${{ matrix.shard }}
+          path: frames/*.png
+          retention-days: 30
+          compression-level: 0
+
+  assemble:
+    needs: render
+    if: ${{ always() && (needs.render.result == 'success' || needs.render.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: frames-*
+          merge-multiple: true
+          path: frames
+          run-id: ${{ inputs.reuse_run_id || github.run_id }}
+          github-token: ${{ github.token }}
+      - run: test "$(ls frames/f*.png | wc -l)" -eq "$FRAMES"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -q numpy pillow scipy opencv-python-headless
+      - name: FFmpeg with SVT-AV1
+        run: |
+          if curl -fsSL https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz | tar xJ; then
+            echo "$PWD/ffmpeg-master-latest-linux64-gpl/bin" >> "$GITHUB_PATH"
+          else
+            sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          fi
+      - run: ffmpeg -hide_banner -encoders | grep -E 'libsvtav1|libaom-av1|libx264'
+      - run: python render/post.py frames graded
+      - run: bash render/encode.sh graded site/media
+      - run: python render/stills.py graded site
+      - name: Commit media
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/media site/img
+          git commit -m "Render hero film (run ${{ github.run_id }})" || exit 0
+          for i in 1 2 3 4; do
+            git pull --rebase origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
