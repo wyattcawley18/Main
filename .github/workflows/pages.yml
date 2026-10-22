@@ -40,7 +40,7 @@ jobs:
         run: |
           ready=true
           if ! gh api "repos/${{ github.repository }}/pages" --silent 2>/dev/null; then
-            echo "::notice::GitHub Pages is not enabled yet (Settings -> Pages -> Source: GitHub Actions); skipping deploy."
+            echo "::notice::GitHub Pages is not enabled yet (Settings -> Pages -> Source: GitHub Actions); skipping deploy. After enabling it, run Actions -> Deploy site -> Run workflow."
             ready=false
           fi
           if [ ! -f site/media/hero-1080.mp4 ]; then

@@ -83,7 +83,7 @@
   color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:84px}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:84px;scroll-padding-bottom:var(--dock)}
 body{margin:0;background:var(--ink);color:var(--cream);font-family:var(--serif);font-size:clamp(1rem,.96rem + .2vw,1.125rem);line-height:1.62;font-weight:380;font-optical-sizing:auto;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;overflow-x:clip;padding-bottom:var(--dock)}
 img,svg,video{display:block;max-width:100%}
 a{color:inherit}
@@ -110,7 +110,7 @@ p{margin:0 0 1.1em}
 .btn svg{width:18px;height:18px;flex:none}
 .btn-primary{background:var(--amber);border-color:var(--amber);color:#1b1006}
 .btn-primary:hover{background:var(--amber-hi);color:#1b1006;box-shadow:0 0 34px -4px rgba(255,200,120,.7)}
-.ext::after{content:"↗";font-family:var(--serif);letter-spacing:0;font-weight:500}
+.ext::after{content:"";width:.8em;height:.8em;flex:none;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 9L9 3M4 3h5v5' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 9L9 3M4 3h5v5' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
 
 /* ---------- header ---------- */
 .bar{position:fixed;inset:0 0 auto;z-index:50;transition:background-color .35s,box-shadow .35s,backdrop-filter .35s}
@@ -161,8 +161,8 @@ p{margin:0 0 1.1em}
 .video-toggle:hover{color:var(--cream);border-color:var(--amber)}
 .video-toggle svg{width:16px;height:16px}
 .video-toggle .i-play{display:none}
-.video-toggle[aria-pressed="true"] .i-play{display:block}
-.video-toggle[aria-pressed="true"] .i-pause{display:none}
+.video-toggle[data-paused="true"] .i-play{display:block}
+.video-toggle[data-paused="true"] .i-pause{display:none}
 .scroll-cue{position:absolute;left:50%;bottom:1.2rem;transform:translateX(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:.5rem;text-decoration:none;font:700 .7rem/1 var(--sign);letter-spacing:.3em;text-transform:uppercase;color:var(--cream-2)}
 .scroll-cue i{display:block;width:1px;height:42px;background:linear-gradient(var(--amber),transparent);transform-origin:top;animation:cue 2.4s var(--ease) infinite}
 @keyframes cue{0%{transform:scaleY(0);opacity:1}60%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
@@ -245,7 +245,7 @@ section{position:relative}
 .quote::before{content:"“";position:absolute;top:-.12em;right:.18em;font-size:7rem;line-height:1;font-style:italic;color:rgba(244,166,60,.22)}
 .quote blockquote{margin:0 0 1.3rem;font-size:clamp(1.18rem,1.02rem + .6vw,1.5rem);line-height:1.45;font-weight:400}
 .quote figcaption{display:flex;flex-wrap:wrap;align-items:baseline;gap:.4rem .8rem}
-.quote cite{font-style:normal;font-weight:550;font-size:1.05rem}
+.quote .name{font-weight:550;font-size:1.05rem}
 .quote figcaption span{font-family:var(--sign);font-weight:700;font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
 
 /* visit */
@@ -288,6 +288,8 @@ section{position:relative}
 /* reveal */
 .js .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
 .js .reveal.is-in{opacity:1;transform:none}
+/* parallax layers own their transform; they only fade in */
+.js .reveal[data-speed]{transform:none;transition:opacity .9s var(--ease)}
 .js .reveal.d1{transition-delay:.08s}.js .reveal.d2{transition-delay:.16s}.js .reveal.d3{transition-delay:.24s}
 
 [data-speed]{will-change:transform}
@@ -313,6 +315,7 @@ section{position:relative}
   .brand-name{font-size:1.25rem}
   .brand svg{width:30px;height:30px}
   .bar .btn-call span{display:none}
+  .hero{min-height:calc(100vh - var(--dock));min-height:calc(100svh - var(--dock))}
   .hero-media img,.hero-video{object-position:50% 50%}
   .hero-shade{background:
     linear-gradient(0deg,var(--ink) 0%,rgba(15,12,10,.9) 30%,rgba(15,12,10,.62) 50%,rgba(15,12,10,.12) 68%,rgba(15,12,10,0) 76%),
@@ -353,7 +356,6 @@ section{position:relative}
   [data-speed]{will-change:auto;transform:none!important}
 }
 </style>
-<script>document.documentElement.classList.add("js")</script>
 <script src="js/main.js" defer></script>
 </head>
 <body>
@@ -437,7 +439,7 @@ section{position:relative}
     <svg class="moon"><use href="#moon"/></svg>
   </div>
 
-  <button class="video-toggle" type="button" aria-pressed="false" aria-controls="hero-video">
+  <button class="video-toggle" type="button" data-paused="false" aria-controls="hero-video">
     <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 3h3v10H4zM9 3h3v10H9z"/></svg>
     <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 2.5v11l9-5.5z"/></svg>
     <span>Pause film</span>
@@ -571,15 +573,15 @@ section{position:relative}
     <div class="quotes">
       <figure class="quote reveal" data-speed="0.96">
         <blockquote><p>“The group I was with were looking for a late night bite to eat. The kitchen at Bedford Falls is open past midnight. The food is some of the best I have had in Charleston.”</p></blockquote>
-        <figcaption><cite>Michael S.</cite><span>Local Guide · Google</span></figcaption>
+        <figcaption><span class="name">Michael S.</span><span>Local Guide · Google</span></figcaption>
       </figure>
       <figure class="quote reveal" data-speed="1.02">
         <blockquote><p>“The food was absolutely incredible, the drinks were perfectly crafted, and the atmosphere made us want to stay all night.”</p></blockquote>
-        <figcaption><cite>Nancy M.</cite><span>Visiting from Austin, TX · Google</span></figcaption>
+        <figcaption><span class="name">Nancy M.</span><span>Visiting from Austin, TX · Google</span></figcaption>
       </figure>
       <figure class="quote reveal" data-speed="1.07">
         <blockquote><p>“Great food. Delicious burger, awesome shrimp tacos, and amazing steak and cheese egg rolls. Bartender was great and super friendly!”</p></blockquote>
-        <figcaption><cite>Joshua D.</cite><span>Local Guide · Google</span></figcaption>
+        <figcaption><span class="name">Joshua D.</span><span>Local Guide · Google</span></figcaption>
       </figure>
     </div>
   </div>

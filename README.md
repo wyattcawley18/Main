@@ -35,7 +35,8 @@ awards, history or opening hours beyond what is listed are stated.
 
 ## Deploying
 
-GitHub Pages, source **GitHub Actions** (Settings → Pages). `deploy` stamps the absolute URL
+GitHub Pages, source **GitHub Actions** (Settings → Pages). Enabling Pages does not start a
+deploy by itself: afterwards run **Actions → Deploy site → Run workflow** once. `deploy` stamps the absolute URL
 into canonical/OG/sitemap, publishes `site/`, then runs `tools/verify.cjs` and Lighthouse
 against the live URL. Re-rendering the film: run the *Render hero film* workflow; it renders
 240 frames across runners and commits the encodes to `site/media/`.

@@ -182,12 +182,69 @@ async function reduced(browser, name) {
   await ctx.close();
 }
 
+async function robustness(browser, name) {
+  // 1. film already playing before the deferred script attaches its listeners
+  let ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  let page = await ctx.newPage();
+  await page.route(/js\/main\.js/, async (r) => { await sleep(4000); r.continue(); });
+  await page.goto(url, { waitUntil: "load", timeout: 30000 });
+  await sleep(1500);
+  const late = await page.evaluate(() => ({
+    playing: !document.getElementById("hero-video").paused,
+    cls: document.querySelector(".hero").classList.contains("is-playing"),
+    op: getComputedStyle(document.getElementById("hero-video")).opacity,
+    label: document.querySelector(".video-toggle").textContent.trim(),
+  }));
+  ok(late.playing && late.cls && late.op === "1" && /Pause/.test(late.label), `[${name}] film shows when script loads late`, JSON.stringify(late));
+  await ctx.close();
+  // 2. script fails entirely: nothing may stay hidden
+  ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  page = await ctx.newPage();
+  await page.route(/js\/main\.js/, (r) => r.abort());
+  await page.goto(url, { waitUntil: "load" });
+  const hidden = await page.evaluate(() => [...document.querySelectorAll(".reveal")].filter((e) => getComputedStyle(e).opacity === "0").length);
+  ok(hidden === 0, `[${name}] content visible without JavaScript`, `${hidden} hidden`);
+  await ctx.close();
+  // 3. review cards track scroll exactly (no transform transition lag)
+  ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  page = await ctx.newPage();
+  await page.goto(url, { waitUntil: "load" });
+  await page.evaluate(() => document.querySelector(".quotes").scrollIntoView({ behavior: "instant" }));
+  await sleep(1500);
+  await page.evaluate(() => window.scrollBy({ top: 300, behavior: "instant" }));
+  await sleep(120);
+  const lag = await page.evaluate(() => [...document.querySelectorAll(".quote")].map((q) => {
+    const m = getComputedStyle(q).transform;
+    const v = m === "none" ? 0 : Number(m.slice(m.indexOf("(") + 1, -1).split(",")[m.startsWith("matrix3d") ? 13 : 5]);
+    const inline = Number((q.style.transform.match(/,\s*(-?[\d.]+)px/) || [0, 0])[1]);
+    return Math.abs(v - inline);
+  }));
+  ok(lag.every((d) => d < 1), `[${name}] review cards track scroll without lag`, lag.map((d) => d.toFixed(1)).join(","));
+  await ctx.close();
+}
+
+async function dockClearance(browser, name, device) {
+  const ctx = await browser.newContext({ ...device });
+  const page = await ctx.newPage();
+  await page.goto(url, { waitUntil: "load" });
+  const r = await page.evaluate(() => {
+    const t = document.querySelector(".video-toggle").getBoundingClientRect();
+    const d = document.querySelector(".dock").getBoundingClientRect();
+    const x = t.left + t.width / 2, y = t.top + t.height / 2;
+    return { toggleBottom: t.bottom, dockTop: d.top, hit: document.elementFromPoint(x, y)?.closest(".video-toggle") !== null };
+  });
+  ok(r.toggleBottom <= r.dockTop && r.hit, `[${name}] film control clear of the phone dock`, JSON.stringify(r));
+  await ctx.close();
+}
+
 (async () => {
   for (const e of engines) {
     const browser = await ({ chromium, webkit })[e].launch();
     await desktop(browser, `${e}-desktop`);
     await mobile(browser, `${e}-phone`, e === "webkit" ? devices["iPhone 13"] : devices["Pixel 7"]);
     await reduced(browser, `${e}-reduced`);
+    await robustness(browser, `${e}-robust`);
+    await dockClearance(browser, `${e}-phone`, e === "webkit" ? devices["iPhone 13"] : devices["Pixel 7"]);
     await browser.close();
   }
   console.log(failed ? `\n${failed} check(s) failed` : "\nall checks passed");
