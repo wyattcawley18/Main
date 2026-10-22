@@ -62,8 +62,8 @@
 </script>
 
 <style>
-@font-face{font-family:"Fraunces";src:url(fonts/fraunces.woff2) format("woff2");font-weight:300 700;font-style:normal;font-display:swap}
-@font-face{font-family:"Fraunces";src:url(fonts/fraunces-italic.woff2) format("woff2");font-weight:300 700;font-style:italic;font-display:swap}
+@font-face{font-family:"Fraunces";src:url(fonts/fraunces.woff2) format("woff2");font-weight:350 600;font-style:normal;font-display:swap}
+@font-face{font-family:"Fraunces";src:url(fonts/fraunces-italic.woff2) format("woff2");font-weight:360 560;font-style:italic;font-display:swap}
 @font-face{font-family:"Big Shoulders";src:url(fonts/big-shoulders.woff2) format("woff2");font-weight:600 800;font-display:swap}
 /* metric-matched fallbacks keep the swap from shifting layout */
 @font-face{font-family:"Fraunces Fallback";src:local("Georgia");size-adjust:104%;ascent-override:94%;descent-override:24%}
@@ -171,7 +171,8 @@ p{margin:0 0 1.1em}
 .marquee-track{display:flex;width:max-content;will-change:transform}
 .marquee-track span{font-family:var(--sign);font-weight:800;text-transform:uppercase;font-size:clamp(1.9rem,1.2rem + 3vw,3.9rem);letter-spacing:.06em;line-height:1;padding-right:.55em;white-space:nowrap;color:rgba(244,231,211,.3)}
 .marquee-track span:nth-child(4n+1){color:var(--cream)}
-.marquee-track b{color:var(--amber);font-weight:800;padding:0 .35em 0 0}
+.marquee-track b{display:flex;align-items:center;color:var(--amber);padding:0 .55em 0 0}
+.marquee-track b svg{width:.42em;height:.42em;font-size:clamp(1.9rem,1.2rem + 3vw,3.9rem)}
 
 /* ---------- sections ---------- */
 section{position:relative}
@@ -350,6 +351,7 @@ section{position:relative}
     <radialGradient id="moon-g" cx="38%" cy="62%" r="70%"><stop offset="0" stop-color="#ffd58a"/><stop offset="1" stop-color="#f09a2e"/></radialGradient>
     <mask id="moon-m"><rect width="64" height="64" fill="#fff"/><circle cx="41.5" cy="24" r="17.5" fill="#000"/></mask>
     <symbol id="moon" viewBox="0 0 64 64"><circle cx="29" cy="35" r="20" fill="url(#moon-g)" mask="url(#moon-m)"/><path d="M46 19.5l1.8 4.1 4.1 1.8-4.1 1.8-1.8 4.1-1.8-4.1-4.1-1.8 4.1-1.8z" fill="#ffd58a"/></symbol>
+    <symbol id="spark" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1.5l2.3 8.2 8.2 2.3-8.2 2.3L12 22.5l-2.3-8.2L1.5 12l8.2-2.3z"/></symbol>
     <symbol id="star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.6l2.8 6 6.5.7-4.9 4.4 1.4 6.4L12 16.8l-5.8 3.3 1.4-6.4L2.7 9.3l6.5-.7z"/></symbol>
     <symbol id="star-half" viewBox="0 0 24 24"><path fill="currentColor" opacity=".28" d="M12 2.6l2.8 6 6.5.7-4.9 4.4 1.4 6.4L12 16.8l-5.8 3.3 1.4-6.4L2.7 9.3l6.5-.7z"/><path fill="currentColor" d="M12 2.6v14.2l-5.8 3.3 1.4-6.4L2.7 9.3l6.5-.7z"/></symbol>
     <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M5 3.5h3.2l1.6 4.2-2.1 1.4a11.5 11.5 0 0 0 7.2 7.2l1.4-2.1 4.2 1.6V19a1.8 1.8 0 0 1-1.9 1.8A16.6 16.6 0 0 1 3.2 5.4 1.8 1.8 0 0 1 5 3.5z"/></symbol>
@@ -418,7 +420,7 @@ section{position:relative}
   </div>
 
   <div class="hero-badge" data-speed="1.28" aria-hidden="true">
-    <svg class="ring" viewBox="0 0 160 160"><defs><path id="ring-path" d="M80 80m-62 0a62 62 0 1 1 124 0a62 62 0 1 1-124 0"/></defs><circle cx="80" cy="80" r="75" fill="rgba(15,12,10,.55)" stroke="rgba(244,166,60,.6)"/><text><textPath href="#ring-path" textLength="388">Kitchen open late ✦ Meeting St ✦ Charleston ✦</textPath></text></svg>
+    <svg class="ring" viewBox="0 0 160 160"><defs><path id="ring-path" d="M80 80m-62 0a62 62 0 1 1 124 0a62 62 0 1 1-124 0"/></defs><circle cx="80" cy="80" r="75" fill="rgba(15,12,10,.55)" stroke="rgba(244,166,60,.6)"/><text><textPath href="#ring-path" textLength="388">Kitchen open late · Meeting St · Charleston ·</textPath></text></svg>
     <svg class="moon"><use href="#moon"/></svg>
   </div>
 
@@ -432,8 +434,8 @@ section{position:relative}
 
 <div class="marquee" aria-hidden="true">
   <div class="marquee-track" data-marquee>
-    <span>Dine-in</span><b>✦</b><span>Takeout</span><b>✦</b><span>Delivery</span><b>✦</b><span>Outdoor patio</span><b>✦</b><span>Kitchen open late</span><b>✦</b><span>Reserve a table</span><b>✦</b>
-    <span>Dine-in</span><b>✦</b><span>Takeout</span><b>✦</b><span>Delivery</span><b>✦</b><span>Outdoor patio</span><b>✦</b><span>Kitchen open late</span><b>✦</b><span>Reserve a table</span><b>✦</b>
+    <span>Dine-in</span><b><svg><use href="#spark"/></svg></b><span>Takeout</span><b><svg><use href="#spark"/></svg></b><span>Delivery</span><b><svg><use href="#spark"/></svg></b><span>Outdoor patio</span><b><svg><use href="#spark"/></svg></b><span>Kitchen open late</span><b><svg><use href="#spark"/></svg></b><span>Reserve a table</span><b><svg><use href="#spark"/></svg></b>
+    <span>Dine-in</span><b><svg><use href="#spark"/></svg></b><span>Takeout</span><b><svg><use href="#spark"/></svg></b><span>Delivery</span><b><svg><use href="#spark"/></svg></b><span>Outdoor patio</span><b><svg><use href="#spark"/></svg></b><span>Kitchen open late</span><b><svg><use href="#spark"/></svg></b><span>Reserve a table</span><b><svg><use href="#spark"/></svg></b>
   </div>
 </div>
 

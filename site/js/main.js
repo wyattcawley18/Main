@@ -25,8 +25,8 @@
   function measure() {
     vh = innerHeight;
     const y = scrollY;
+    for (const l of layers) l.el.style.transform = "";
     for (const l of layers) {
-      l.el.style.transform = "";
       const r = l.el.getBoundingClientRect();
       l.top = r.top + y;
       l.h = r.height;
