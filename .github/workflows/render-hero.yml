@@ -7,7 +7,7 @@ on:
     inputs:
       samples:
         description: Cycles samples per pixel
-        default: "80"
+        default: "64"
       reuse_run_id:
         description: Skip rendering and re-grade frames from this earlier run id
         default: ""
@@ -51,7 +51,7 @@ jobs:
       - name: Render frames ${{ matrix.shard }}::${{ env.SHARDS }}
         run: |
           python render/scene.py --out frames --w 1920 --h 1080 \
-            --samples "${{ inputs.samples || '80' }}" \
+            --samples "${{ inputs.samples || '64' }}" \
             --frames "${{ matrix.shard }}:${FRAMES}:${SHARDS}" --total "$FRAMES" 2>&1 \
             | grep -E --line-buffered 'FRAME|Error|rror:|Traceback'
           test "$(ls frames/*.png | wc -l)" -eq $(( (FRAMES - ${{ matrix.shard }} + SHARDS - 1) / SHARDS ))

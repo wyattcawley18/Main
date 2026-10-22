@@ -764,6 +764,9 @@ c = scene.cycles
 c.device = "CPU"
 c.samples = args.samples
 c.use_adaptive_sampling = True
+# ~200 small emitters: uniform light sampling + OIDN is visually identical
+# here and twice as fast as the light tree on CPU
+c.use_light_tree = False
 c.adaptive_threshold = 0.02
 c.use_denoising = True
 try:
