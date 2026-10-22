@@ -44,9 +44,10 @@ JSON-LD are the decoded plus code.
 
 ## Deploying
 
-`.github/workflows/pages.yml` publishes `site/` to GitHub Pages under
-`/fort-mill-family-restaurant/`, stamping the absolute URL into canonical/OG/sitemap, and then
-runs `tools/verify.cjs` and Lighthouse against the live URL. The repository's Pages root serves
-another site from the default branch; each deploy republishes it unchanged so both stay up.
-Re-rendering the film: run the *Render hero film* workflow on `main`; it renders 192 frames
+`.github/workflows/pages.yml` publishes `site/` to GitHub Pages, stamping the absolute URL into
+canonical/OG/sitemap, and then runs `tools/verify.cjs` and Lighthouse against the live URL.
+In its own repository the site is the Pages root (Settings → Pages → Source: GitHub Actions).
+In `wyattcawley18/Main`, whose Pages root serves another site from the default branch, it goes
+under `/fort-mill-family-restaurant/` and each deploy republishes that site unchanged.
+Re-rendering the film: run the *Render hero film* workflow manually; it renders 192 frames
 across runners and commits the encodes to `site/media/`.

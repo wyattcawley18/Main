@@ -120,6 +120,9 @@ async function desktop(browser, name) {
   const phoneText = await page.evaluate(() => [...document.querySelectorAll("a")].filter((x) => /548-2336/.test(x.textContent)).every((x) => x.getAttribute("href") === "tel:+18035482336"));
   ok(phoneText, `[${name}] every printed phone number is a tel: link`);
   ok(addrLinks, `[${name}] every printed address is a directions link`);
+  const dd = await page.evaluate(() => [...document.querySelectorAll('a[href*="doordash.com"]')].map((a) => ({ href: a.getAttribute("href"), target: a.target, rel: a.rel })));
+  ok(dd.length >= 5 && dd.every((a) => a.href === "https://www.doordash.com/store/fort-mill-family-restaurant-fort-mill-36321367/" && a.target === "_blank" && /noopener/.test(a.rel)),
+    `[${name}] order-online links go to the DoorDash store`, `${dd.length} links`);
   const anchors = links.filter((h) => h.startsWith("#") && h.length > 1);
   const missing = await page.evaluate((a) => a.filter((h) => !document.querySelector(h)), anchors);
   ok(missing.length === 0, `[${name}] in-page anchors resolve`, missing.join(",") || `${anchors.length} anchors`);
@@ -173,8 +176,8 @@ async function mobile(browser, name, device) {
   ok(/portrait/.test(v.src), `[${name}] phone gets the 9:16 cut`, `${v.w}x${v.h}`);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   ok(overflow <= 0, `[${name}] no horizontal scroll`, `${overflow}px`);
-  const dock = await page.evaluate(() => getComputedStyle(document.querySelector(".dock")).display);
-  ok(dock !== "none", `[${name}] call/directions dock visible`);
+  const dock = await page.evaluate(() => ({ display: getComputedStyle(document.querySelector(".dock")).display, links: [...document.querySelectorAll(".dock a")].map((a) => a.textContent.trim()) }));
+  ok(dock.display !== "none" && dock.links.join("|") === "Call|Order|Directions", `[${name}] call/order/directions dock visible`, dock.links.join(" · "));
   const before = await page.evaluate(() => getComputedStyle(document.querySelector(".hero-media")).transform);
   await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
   await sleep(300);

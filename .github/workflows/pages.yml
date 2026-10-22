@@ -1,14 +1,15 @@
 name: Deploy Fort Mill site
 
-# Publishes site/ to GitHub Pages under /fort-mill-family-restaurant/, then
-# verifies the live URL: hero film playback and looping, parallax layers,
-# tap-to-call / directions links, SEO tags, phone layout, reduced motion, and a
-# Lighthouse mobile audit.
+# Publishes site/ to GitHub Pages, then verifies the live URL: hero film
+# playback and looping, parallax layers, tap-to-call / order / directions
+# links, SEO tags, hours, phone layout, reduced motion, and a Lighthouse
+# mobile audit.
 #
-# This repository has one Pages site and its root already serves the Bedford
-# Falls site from the default branch. Every deploy from here republishes that
-# site unchanged at the root (same files, same URL stamping as its own
-# workflow) so the two sites live side by side.
+# In its own repository the site is the Pages root. In wyattcawley18/Main the
+# Pages root already serves the Bedford Falls site from the default branch, so
+# there the site goes under /fort-mill-family-restaurant/ and every deploy
+# republishes Bedford Falls unchanged at the root (same files, same URL
+# stamping as its own workflow) so the two live side by side.
 on:
   push:
     branches: [main]
@@ -29,7 +30,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  SUBPATH: fort-mill-family-restaurant
+  SUBPATH: ${{ github.repository == 'wyattcawley18/Main' && 'fort-mill-family-restaurant' || '' }}
   ROOT_SITE_BRANCH: claude/nice-brahmagupta-96qop7
 
 jobs:
@@ -65,9 +66,9 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.pages.outputs.base_url }}/${{ env.SUBPATH }}/
+      url: ${{ steps.pages.outputs.base_url }}${{ env.SUBPATH && format('/{0}', env.SUBPATH) || '' }}/
     outputs:
-      url: ${{ steps.pages.outputs.base_url }}/${{ env.SUBPATH }}
+      url: ${{ steps.pages.outputs.base_url }}${{ env.SUBPATH && format('/{0}', env.SUBPATH) || '' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -75,6 +76,7 @@ jobs:
           path: fm
       - name: Check out the site already served at the root
         id: root
+        if: ${{ env.SUBPATH != '' }}
         continue-on-error: true
         uses: actions/checkout@v4
         with:
@@ -83,11 +85,18 @@ jobs:
           sparse-checkout: site
       - id: pages
         uses: actions/configure-pages@v5
-      - name: Assemble root site + this site, stamp absolute URLs
+      - name: Assemble the site (plus the root site in Main), stamp absolute URLs
         run: |
           base="${{ steps.pages.outputs.base_url }}"
           base="${base%/}"
           mkdir -p public
+          if [ -z "$SUBPATH" ]; then
+            cp -a fm/site/. public/
+            grep -rl "__SITE_URL__" public | xargs -r sed -i "s#__SITE_URL__#${base}#g"
+            ! grep -rn "__SITE_URL__" public
+            du -sh public
+            exit 0
+          fi
           if [ "${{ steps.root.outcome }}" = "success" ] && [ -d root/site ]; then
             cp -a root/site/. public/
             grep -rl "__SITE_URL__" public | xargs -r sed -i "s#__SITE_URL__#${base}#g"
@@ -133,7 +142,7 @@ jobs:
             [ "$code" = "206" ] && break; sleep 10
           done
           curl -sI "${{ needs.deploy.outputs.url }}/" | head -5
-          echo "root site: $(curl -s -o /dev/null -w '%{http_code}' "${{ needs.deploy.outputs.url }}/../")"
+          [ -n "$SUBPATH" ] && echo "root site: $(curl -s -o /dev/null -w '%{http_code}' "${{ needs.deploy.outputs.url }}/../")" || true
       - name: Live checks
         run: node tools/verify.cjs "${{ needs.deploy.outputs.url }}/" shots --engines=chromium,webkit
       - name: Lighthouse (mobile)

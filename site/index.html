@@ -54,6 +54,7 @@
     "addressCountry": "US"
   },
   "geo": { "@type": "GeoCoordinates", "latitude": 35.01019, "longitude": -80.91456 },
+  "potentialAction": { "@type": "OrderAction", "target": "https://www.doordash.com/store/fort-mill-family-restaurant-fort-mill-36321367/" },
   "hasMap": "https://www.google.com/maps/search/?api=1&query=Fort%20Mill%20Family%20Restaurant%2C%201358%20SC-160%2C%20Fort%20Mill%2C%20SC%2029715",
   "openingHoursSpecification": [
     { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Tuesday", "Wednesday", "Thursday", "Friday"], "opens": "07:00", "closes": "15:00" },
@@ -401,6 +402,7 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
 .board dt{font:700 1rem/1.25 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:#f5f1ea;text-shadow:0 1px 0 rgba(0,0,0,.6)}
 .board dd{margin:.3rem 0 0;font-size:.92rem;line-height:1.45;color:rgba(246,234,214,.68)}
 .board-note{grid-column:1/-1;padding-top:1.2rem;border-top:1px dashed rgba(246,234,214,.18);font-size:.84rem;line-height:1.5;color:rgba(246,234,214,.6)}
+.side-actions{display:grid;gap:.6rem}
 .side-card .btn{width:100%}
 .side-note{margin-top:1.2rem;font-size:.9rem;color:rgba(246,234,214,.7)}
 .ring{position:absolute;right:-40px;top:24%;width:clamp(180px,22vw,300px);aspect-ratio:1;pointer-events:none;opacity:.5}
@@ -533,14 +535,17 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
   .art-note{left:-2%;width:min(70%,240px)}
   .check-lines li{grid-template-columns:2.4rem minmax(0,1fr) auto}
   .check-meta span{flex-direction:column;gap:.25rem}
-  .dock{position:fixed;z-index:60;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:rgba(20,12,7,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 -1px 0 rgba(246,234,214,.1)}
-  .dock a{display:flex;align-items:center;justify-content:center;gap:.5rem;min-height:48px;border-radius:14px;font:800 1rem/1 var(--sans);text-decoration:none}
+  .dock{position:fixed;z-index:60;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:rgba(20,12,7,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 -1px 0 rgba(246,234,214,.1)}
+  .dock a{display:flex;align-items:center;justify-content:center;gap:.45rem;min-height:48px;border-radius:14px;font:800 .98rem/1 var(--sans);text-decoration:none}
   .dock .d-call{background:var(--red);color:#fff}
+  .dock .d-order{background:var(--yolk);color:var(--coffee)}
   .dock .d-dir{background:var(--cream);color:var(--coffee)}
   .card-actions .btn{flex:1 1 auto}
   .board{grid-template-columns:1fr}
 }
 @media (max-width:380px){
+  .dock{gap:6px;padding-inline:8px}
+  .dock a{gap:.3rem;font-size:.9rem}
   .brand-name .b1{font-size:1.15rem}
   .brand-name .b2{font-size:.56rem;letter-spacing:.2em}
   .check-meta{grid-template-columns:1fr 1fr}
@@ -567,6 +572,7 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
   <symbol id="badge" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#b23a2e"/><use href="#egg"/></symbol>
   <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></symbol>
   <symbol id="i-dir" viewBox="0 0 24 24"><path d="M21.7 11.3l-9-9a1 1 0 0 0-1.4 0l-9 9a1 1 0 0 0 0 1.4l9 9a1 1 0 0 0 1.4 0l9-9a1 1 0 0 0 0-1.4zM14 14.5V12h-4v3H8v-4a1 1 0 0 1 1-1h5V7.5l3.5 3.5z"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M7 7V6a5 5 0 0 1 10 0v1h3.2l-1.1 14H4.9L3.8 7zm2 0h6V6a3 3 0 0 0-6 0zm-1 3.2a1.1 1.1 0 1 0 2.2 0 1.1 1.1 0 0 0-2.2 0zm5.8 0a1.1 1.1 0 1 0 2.2 0 1.1 1.1 0 0 0-2.2 0z"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.5l2.8 6.4 7 .7-5.3 4.7 1.6 6.9L12 17.6l-6.1 3.6 1.6-6.9-5.3-4.7 7-.7z"/></symbol>
   <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 3h7v7h-2V6.4l-8.3 8.3-1.4-1.4L17.6 5H14zM5 5h6v2H5v12h12v-6h2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></symbol>
@@ -585,6 +591,7 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
     <a href="#menu">Menu</a>
     <a href="#reviews">Reviews</a>
     <a href="#visit">Hours &amp; directions</a>
+    <a href="https://www.doordash.com/store/fort-mill-family-restaurant-fort-mill-36321367/" target="_blank" rel="noopener">Order online</a>
   </nav>
   <a class="btn btn-red bar-call" href="tel:+18035482336"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>(803) 548-2336</a>
 </header>
@@ -624,6 +631,7 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
     <p class="hero-lede">Biscuits and gravy, grits, home fries and a glass of sweet tea. Small-town diner cooking for breakfast and lunch, served fast and friendly.</p>
     <div class="hero-cta">
       <a class="btn btn-red" href="tel:+18035482336"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>Call (803) 548-2336</a>
+      <a class="btn btn-ghost" href="https://www.doordash.com/store/fort-mill-family-restaurant-fort-mill-36321367/" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-bag"/></svg>Order on DoorDash</a>
       <a class="btn btn-ghost" href="https://www.google.com/maps/dir/?api=1&amp;destination=Fort%20Mill%20Family%20Restaurant%2C%201358%20SC-160%2C%20Fort%20Mill%2C%20SC%2029715" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-dir"/></svg>Get directions</a>
     </div>
     <ul class="hero-facts">
@@ -728,9 +736,12 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
             <div><dt>Fried Filet of Flounder</dt><dd>$14.49</dd></div>
           </dl>
           <p class="fine">Flounder also comes with hush puppies, fries &amp; slaw. Broil any selection, or swap a side for onion rings or garden salad, for an additional charge.</p>
-          <a class="btn btn-red" href="tel:+18035482336"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>Call in a takeout order</a>
+          <div class="side-actions">
+            <a class="btn btn-red" href="https://www.doordash.com/store/fort-mill-family-restaurant-fort-mill-36321367/" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-bag"/></svg>Order on DoorDash</a>
+            <a class="btn btn-line" href="tel:+18035482336"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>Call for takeout</a>
+          </div>
         </aside>
-        <p class="side-note">Prices are from the restaurant’s online ordering menu and may change.</p>
+        <p class="side-note">Prices are from the restaurant’s DoorDash menu and may change; prices in the restaurant may differ.</p>
       </div>
     </div>
     <div class="board-frame reveal">
@@ -861,8 +872,9 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
       <p>Home cooking for breakfast and lunch on <span class="nw">SC-160</span> in Fort Mill, South Carolina.</p>
     </div>
     <div class="foot-col">
-      <h3>Call</h3>
-      <a href="tel:+18035482336">(803) 548-2336</a>
+      <h3>Call or order</h3>
+      <a href="tel:+18035482336">(803) 548-2336</a><br>
+      <a href="https://www.doordash.com/store/fort-mill-family-restaurant-fort-mill-36321367/" target="_blank" rel="noopener">Order on DoorDash</a>
     </div>
     <div class="foot-col">
       <h3>Visit</h3>
@@ -880,8 +892,9 @@ h2{font-family:var(--display);font-size:clamp(2.3rem,1.3rem + 3.6vw,4.3rem);line
   </div>
 </footer>
 
-<nav class="dock" aria-label="Call or get directions">
+<nav class="dock" aria-label="Call, order or get directions">
   <a class="d-call" href="tel:+18035482336"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>Call</a>
+  <a class="d-order" href="https://www.doordash.com/store/fort-mill-family-restaurant-fort-mill-36321367/" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-bag"/></svg>Order</a>
   <a class="d-dir" href="https://www.google.com/maps/dir/?api=1&amp;destination=Fort%20Mill%20Family%20Restaurant%2C%201358%20SC-160%2C%20Fort%20Mill%2C%20SC%2029715" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-dir"/></svg>Directions</a>
 </nav>
 </body>

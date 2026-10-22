@@ -2,7 +2,8 @@ name: Render hero film
 
 # Path-traces the hero loop in Blender Cycles across 24 runners (plus one for
 # the About still), grades and encodes it, then commits the web deliverables
-# to site/media and site/img.
+# to site/media and site/img. Manual only (Actions -> Run workflow): a render
+# takes about 1.5 hours of runner time and the media is already committed.
 on:
   workflow_dispatch:
     inputs:
@@ -12,9 +13,6 @@ on:
       reuse_run_id:
         description: Skip rendering and re-grade frames from this earlier run id
         default: ""
-  push:
-    branches: [main]
-    paths: [render/scene.py, render/about_shot.py, .github/workflows/render-hero.yml]
 
 permissions:
   contents: write
