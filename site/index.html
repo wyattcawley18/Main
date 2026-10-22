@@ -212,10 +212,10 @@ section{position:relative}
 .dish p{margin:0;color:var(--cream-2)}
 .dish q{display:block;margin-top:.85rem;font-style:italic;color:var(--cream);quotes:"“" "”"}
 .dish q + span{display:block;font-family:var(--sign);font-weight:700;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:.2rem}
-.board{margin:clamp(2rem,4vw,3rem) 0 0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;column-gap:clamp(2rem,5vw,5rem)}
+.board{margin:clamp(2rem,4vw,3rem) 0 0;padding:0;list-style:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:clamp(2rem,5vw,5rem)}
 .board li{display:flex;align-items:baseline;gap:.8rem;padding:1.05rem 0;border-bottom:1px solid var(--line)}
-.board .n{font-size:clamp(1.25rem,1.1rem + .5vw,1.5rem);font-weight:450;white-space:nowrap}
-.board .dots{flex:1;border-bottom:2px dotted rgba(244,231,211,.22);transform:translateY(-.3em);min-width:1.5rem}
+.board .n{font-size:clamp(1.25rem,1.1rem + .5vw,1.5rem);font-weight:450;min-width:0;line-height:1.25}
+.board .dots{flex:1;border-bottom:2px dotted rgba(244,231,211,.22);transform:translateY(-.3em);min-width:.75rem}
 .board .t{font-family:var(--sign);font-weight:700;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);white-space:nowrap}
 .board .t.q{font-family:var(--serif);font-style:italic;font-weight:400;font-size:1rem;letter-spacing:0;text-transform:none;color:var(--cream-2)}
 .menu-foot{display:flex;flex-wrap:wrap;gap:1.4rem 2rem;align-items:center;justify-content:space-between;margin-top:clamp(2.4rem,4vw,3.4rem)}
@@ -306,7 +306,7 @@ section{position:relative}
 @media (max-width:820px){
   .about-grid{grid-template-columns:1fr}
   .art{width:min(100%,420px);margin-top:1rem}
-  .board{grid-template-columns:1fr}
+  .board{grid-template-columns:minmax(0,1fr)}
   .quote:nth-child(2){margin-left:0}
 }
 @media (max-width:700px){
@@ -322,11 +322,12 @@ section{position:relative}
     linear-gradient(180deg,rgba(15,12,10,.6) 0%,rgba(15,12,10,0) 20%)}
   .hero .lede{max-width:none}
   .eyebrow .addr-part{display:none}
-  .hero-content{padding-bottom:4.6rem}
+  .hero-content{padding-bottom:4.6rem;padding-top:136px}
   .hero h1 .l2{padding-left:.3em}
-  .hero-badge{top:84px;bottom:auto;right:14px;width:96px}
+  .hero-badge{display:none}
   .scroll-cue{display:none}
-  .video-toggle{left:auto;right:var(--gutter);bottom:1.1rem}
+  /* top of the hero, so the dock can never cover it on short phones */
+  .video-toggle{top:76px;bottom:auto;left:var(--gutter);right:auto}
   .dish{grid-template-columns:1fr;gap:1rem}
   .facts dd{font-size:1.08rem}
   .foot-grid{grid-template-columns:1fr}
@@ -347,6 +348,10 @@ section{position:relative}
   .hero-content{padding-top:88px;padding-bottom:4.2rem}
   .hero-badge,.scroll-cue{display:none}
   .rating{margin-top:1rem}
+}
+@media (max-width:370px){
+  .brand-tag{display:none}
+  .bar-in{gap:.8rem}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}

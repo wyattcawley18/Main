@@ -223,6 +223,17 @@ async function robustness(browser, name) {
   await ctx.close();
 }
 
+async function narrow(browser, name) {
+  for (const width of [320, 360]) {
+    const ctx = await browser.newContext({ viewport: { width, height: 640 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: "load" });
+    const r = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, iw: innerWidth }));
+    ok(r.sw <= r.cw && r.iw === width, `[${name}] no horizontal overflow at ${width}px`, JSON.stringify(r));
+    await ctx.close();
+  }
+}
+
 async function dockClearance(browser, name, device) {
   const ctx = await browser.newContext({ ...device });
   const page = await ctx.newPage();
@@ -245,6 +256,7 @@ async function dockClearance(browser, name, device) {
     await reduced(browser, `${e}-reduced`);
     await robustness(browser, `${e}-robust`);
     await dockClearance(browser, `${e}-phone`, e === "webkit" ? devices["iPhone 13"] : devices["Pixel 7"]);
+    await narrow(browser, `${e}-narrow`);
     await browser.close();
   }
   console.log(failed ? `\n${failed} check(s) failed` : "\nall checks passed");
